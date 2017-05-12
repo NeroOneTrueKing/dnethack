@@ -4496,24 +4496,58 @@ upgradeMenu()
 }
 
 STATIC_OVL int
+resizeArmor()
+{
+	struct obj *otmp;
+	
+	// attempt to find a piece of armor to resize
+	NEARDATA const char clothes[] = { ARMOR_CLASS, 0 };
+	otmp = getobj(clothes, "resize");
+	if (!otmp) return(0);
+
+	// check that the armor is not currently being worn
+	if (otmp->owornmask){
+		You("are wearing that!");
+		return(0);
+	}
+	// check that the armor is not dragon scales (which cannot be resized)
+	if (Is_dragon_scales(otmp)){
+		You("cannot resize the dragon scales!");
+		return(0);
+	}
+
+	// change size
+	otmp->objsize = youracedata->msize;
+	// change shape
+	if (is_suit(otmp)) otmp->bodytypeflag = (youracedata->mflagsb&MB_BODYTYPEMASK);
+	else if (is_helmet(otmp)) otmp->bodytypeflag = (youracedata->mflagsb&MB_HEADMODIMASK);
+	else if (is_shirt(otmp)) otmp->bodytypeflag = (youracedata->mflagsb&MB_HUMANOID) ? MB_HUMANOID : (youracedata->mflagsb&MB_BODYTYPEMASK);
+
+	You("resize the armor to fit your current form.");
+	pline("The kit is used up.");
+	return(1);
+}
+
+STATIC_OVL int
 doUseUpgradeKit(optr)
 struct obj **optr;
 {
 	struct obj *obj = *optr;
 	struct obj *comp;
-	if(uclockwork){
-		long upgrade = upgradeMenu();
-		switch(upgrade){
+	if (uclockwork){
+		if (yn("Make an upgrade to yourself?") == 'y'){
+			long upgrade = upgradeMenu();
+			switch (upgrade){
 			case OIL_STOVE:
 				You("use the components in the upgrade kit to install an oil stove.");
 				u.clockworkUpgrades |= upgrade;
 				useup(obj);
 				*optr = 0;
 				return 1;
-			break;
+				break;
 			case WOOD_STOVE:
 				comp = getobj(tools, "upgrade your stove with");
-				if(!comp || comp->otyp != TINNING_KIT){
+				if (!comp || comp->otyp != TINNING_KIT){
 					pline("Never mind.");
 					return 0;
 				}
@@ -4523,17 +4557,17 @@ struct obj **optr;
 				useup(obj);
 				*optr = 0;
 				return 1;
-			break;
+				break;
 			case FAST_SWITCH:
 				You("use the components in the upgrade kit to install a fast switch on your clock.");
 				u.clockworkUpgrades |= upgrade;
 				useup(obj);
 				*optr = 0;
 				return 1;
-			break;
+				break;
 			case EFFICIENT_SWITCH:
 				comp = getobj(tools, "upgrade your switch with");
-				if(!comp || comp->otyp != CROSSBOW){
+				if (!comp || comp->otyp != CROSSBOW){
 					pline("Never mind.");
 					return 0;
 				}
@@ -4543,10 +4577,10 @@ struct obj **optr;
 				useup(obj);
 				*optr = 0;
 				return 1;
-			break;
+				break;
 			case ARMOR_PLATING:
 				comp = getobj(apply_armor, "upgrade your armor with");
-				if(!comp || comp->otyp != BRONZE_PLATE_MAIL){
+				if (!comp || comp->otyp != BRONZE_PLATE_MAIL){
 					pline("Never mind.");
 					return 0;
 				}
@@ -4556,10 +4590,10 @@ struct obj **optr;
 				useup(obj);
 				*optr = 0;
 				return 1;
-			break;
+				break;
 			case PHASE_ENGINE:
 				comp = getobj(apply_all, "build a phase engine with");
-				if(!comp || comp->otyp != SUBETHAIC_COMPONENT){
+				if (!comp || comp->otyp != SUBETHAIC_COMPONENT){
 					pline("Never mind.");
 					return 0;
 				}
@@ -4569,10 +4603,10 @@ struct obj **optr;
 				useup(obj);
 				*optr = 0;
 				return 1;
-			break;
+				break;
 			case MAGIC_FURNACE:
 				comp = getobj(apply_corpse, "build a magic furnace with");
-				if(!comp || comp->otyp != CORPSE || comp->corpsenm != PM_DISENCHANTER){
+				if (!comp || comp->otyp != CORPSE || comp->corpsenm != PM_DISENCHANTER){
 					pline("Never mind.");
 					return 0;
 				}
@@ -4582,10 +4616,10 @@ struct obj **optr;
 				useup(obj);
 				*optr = 0;
 				return 1;
-			break;
+				break;
 			case HELLFIRE_FURNACE:
 				comp = getobj(apply_all, "build a hellfire furnace with");
-				if(!comp || comp->otyp != HELLFIRE_COMPONENT){
+				if (!comp || comp->otyp != HELLFIRE_COMPONENT){
 					pline("Never mind.");
 					return 0;
 				}
@@ -4595,10 +4629,10 @@ struct obj **optr;
 				useup(obj);
 				*optr = 0;
 				return 1;
-			break;
+				break;
 			case SCRAP_MAW:
 				comp = getobj(tools, "build a scrap maw with");
-				if(!comp || comp->otyp != SCRAP){
+				if (!comp || comp->otyp != SCRAP){
 					pline("Never mind.");
 					return 0;
 				}
@@ -4608,28 +4642,35 @@ struct obj **optr;
 				useup(obj);
 				*optr = 0;
 				return 1;
-			break;
+				break;
 			case HIGH_TENSION:
 				// Maybe one day a spring pistol or something
 				// comp = getobj(tools, "build a scrap maw with");
 				// if(!comp || comp->otyp != SCRAP){
-					// pline("Never mind.");
-					// return 0;
+				// pline("Never mind.");
+				// return 0;
 				// }
 				You("use the components in the upgrade kit to increase the maximum tension in your mainspring.");
 				u.uhungermax += DEFAULT_HMAX;
-				if(u.uhungermax >= DEFAULT_HMAX*10) u.clockworkUpgrades |= upgrade;
+				if (u.uhungermax >= DEFAULT_HMAX * 10) u.clockworkUpgrades |= upgrade;
 				// useup(comp);
 				useup(obj);
 				*optr = 0;
 				return 1;
-			break;
+				break;
+			}
 		}
-	} else {
-		You("aren't made of clockwork!");
-		return 0;
 	}
-	return 0;
+	if (yn("Resize a piece of armor?") == 'y'){
+		if (resizeArmor()){
+			useup(obj);
+			*optr = 0;
+			return 1;
+		}
+		else
+			return(0);
+	}
+	return(0);
 }
 
 int
