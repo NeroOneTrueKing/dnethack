@@ -1493,25 +1493,25 @@ int final;	/* 0 => still in progress; 1 => over, survived; 2 => dead */
 	}
 	
 	if(u.lastprayed){
-		Sprintf(buf, "You last %s %ld turns ago", u.lastprayresult==PRAY_GIFT ? "recieved a gift" :
+		Sprintf(buf, "You last %s %ld turns ago.", u.lastprayresult==PRAY_GIFT ? "recieved a gift" :
 												  u.lastprayresult==PRAY_ANGER ? "angered your god" : 
 												  u.lastprayresult==PRAY_CONV ? "converted to a new god" : 
 												  "prayed",
 			moves - u.lastprayed);
 		putstr(en_win, 0, buf);
 		if(u.lastprayresult==PRAY_GOOD){
-			Sprintf(buf, "That prayer was well recieved");
+			Sprintf(buf, "That prayer was well recieved.");
 			putstr(en_win, 0, buf);
 		} else if(u.lastprayresult==PRAY_BAD){
-			Sprintf(buf, "That prayer was poorly recieved");
+			Sprintf(buf, "That prayer was poorly recieved.");
 			putstr(en_win, 0, buf);
 		}
 		if(u.reconciled){
 			if(u.reconciled==REC_REC){
-				Sprintf(buf, " since reconciled with your god");
+				Sprintf(buf, " since reconciled with your god.");
 				enl_msg("You ", "have","had",buf);
 			} else if(u.reconciled==REC_MOL){
-				Sprintf(buf, " since mollified your god");
+				Sprintf(buf, " since mollified your god.");
 				enl_msg("You ", "have","had",buf);
 			}
 		}
