@@ -60,6 +60,22 @@ int thrown;
 		launcher = uswapwep;
 	else launcher = (struct obj *)0;
 
+	if(!canletgo(obj,"throw"))
+		return(0);
+	if ( (obj->oartifact == ART_MJOLLNIR || 
+			obj->oartifact == ART_AXE_OF_THE_DWARVISH_LORDS) && 
+			obj != uwep) {
+	    pline("%s must be wielded before it can be thrown.",
+		The(xname(obj)));
+		return(0);
+	}
+	if (((obj->oartifact == ART_MJOLLNIR ||
+			obj->oartifact == ART_AXE_OF_THE_DWARVISH_LORDS) && ACURR(A_STR) < STR19(25))
+	   || (is_boulder(obj) && !throws_rocks(youracedata) && !(u.sealsActive&SEAL_YMIR))) {
+		pline("It's too heavy.");
+		return(1);
+	}
+	
 	/* ask "in what direction?" */
 #ifndef GOLDOBJ
 	if (!getdir((char *)0)) {
@@ -91,21 +107,6 @@ int thrown;
 	if(obj->oclass == COIN_CLASS && obj != uquiver) return(throw_gold(obj));
 #endif
 
-	if(!canletgo(obj,"throw"))
-		return(0);
-	if ( (obj->oartifact == ART_MJOLLNIR || 
-			obj->oartifact == ART_AXE_OF_THE_DWARVISH_LORDS) && 
-			obj != uwep) {
-	    pline("%s must be wielded before it can be thrown.",
-		The(xname(obj)));
-		return(0);
-	}
-	if (((obj->oartifact == ART_MJOLLNIR ||
-			obj->oartifact == ART_AXE_OF_THE_DWARVISH_LORDS) && ACURR(A_STR) < STR19(25))
-	   || (is_boulder(obj) && !throws_rocks(youracedata) && !(u.sealsActive&SEAL_YMIR))) {
-		pline("It's too heavy.");
-		return(1);
-	}
 	if(!u.dx && !u.dy && !u.dz) {
 		You("cannot throw an object at yourself.");
 		return(0);
