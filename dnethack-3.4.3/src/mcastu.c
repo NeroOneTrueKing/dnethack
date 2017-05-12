@@ -350,29 +350,26 @@ unsigned int type;
 		   
        case PM_LAMASHTU:
 			// pline("favored");
-			switch(rnd(8)){
+			switch(rnd(7)){
 				case 1:
-					return SUMMON_ANGEL;
-				break;
-				case 2:
 					return SUMMON_DEVIL;
 				break;
-				case 3:
+				case 2:
 					return SUMMON_ALIEN;
 				break;
-				case 4:
+				case 3:
 					return NIGHTMARE;
 				break;
-				case 5:
+				case 4:
 					return FILTH;
 				break;
-				case 6:
+				case 5:
 					return CURSE_ITEMS;
 				break;
-				case 7:
+				case 6:
 					return DEATH_TOUCH;
 				break;
-				case 8:
+				case 7:
 					return EVIL_EYE;
 				break;
 			}
@@ -945,8 +942,8 @@ unsigned int type;
 	break;
 	}
     if (type == AD_CLRC)
-        return choose_clerical_spell(rn2(mtmp->m_lev),mtmp->m_id,!(mtmp->mpeaceful));
-    return choose_magic_spell(rn2(mtmp->m_lev),mtmp->m_id,!(mtmp->mpeaceful));
+        return choose_clerical_spell(mtmp->m_id == 0 ? (rn2(u.ulevel) * 18 / 30) : rn2(mtmp->m_lev),mtmp->m_id,!(mtmp->mpeaceful));
+    return choose_magic_spell(mtmp->m_id == 0 ? (rn2(u.ulevel) * 24 / 30) : rn2(mtmp->m_lev),mtmp->m_id,!(mtmp->mpeaceful));
 }
 
 /* return values:
@@ -982,7 +979,7 @@ castmu(mtmp, mattk, thinks_it_foundyou, foundyou)
 	    int cnt = 40;
 		
 		// if(Race_if(PM_DROW) && mtmp->data == &mons[PM_AVATAR_OF_LOLTH] && !Role_if(PM_EXILE) && !mtmp->mpeaceful){
-		if(mtmp->data == &mons[PM_AVATAR_OF_LOLTH] && !mtmp->mpeaceful && strcmp(urole.cgod,"Lolth")){
+		if(mtmp->data == &mons[PM_AVATAR_OF_LOLTH] && !mtmp->mpeaceful && !strcmp(urole.cgod,"Lolth")){
 			u.ugangr[Align2gangr(A_CHAOTIC)]++;
 			angrygods(A_CHAOTIC);
 			return 1;
@@ -2796,7 +2793,7 @@ fire_mm:
 cold_mm:
 	        if (canspotmon(mdef))
 		    pline("%s is covered in frost.", Monnam(mdef));
-		if(resists_fire(mdef)) {
+		if(resists_cold(mdef)) {
 			shieldeff(mdef->mx, mdef->my);
 	                if (canspotmon(mdef))
 			    pline("But %s resists the effects.",
@@ -2912,15 +2909,18 @@ uspell_would_be_useless(mdef, spellnum)
 struct monst *mdef;
 int spellnum;
 {
-	int wardAt = ward_at(mdef->mx, mdef->my);
-	
-	/*Don't cast at warded spaces*/
-	if(onscary(mdef->mx, mdef->my, &youmonst) && !is_undirected_spell(spellnum))
-		return TRUE;
-	
-	if(spellnum == DEATH_TOUCH && (wardAt == CIRCLE_OF_ACHERON || wardAt == HEPTAGRAM || wardAt == HEXAGRAM))
-		return TRUE;
-	
+	/* do not check for wards on target if given no target */
+	if (mdef)
+	{
+		int wardAt = ward_at(mdef->mx, mdef->my);
+
+		/*Don't cast at warded spaces*/
+		if (onscary(mdef->mx, mdef->my, &youmonst) && !is_undirected_spell(spellnum))
+			return TRUE;
+
+		if (spellnum == DEATH_TOUCH && (wardAt == CIRCLE_OF_ACHERON || wardAt == HEPTAGRAM || wardAt == HEXAGRAM))
+			return TRUE;
+	}
 	/* PC drow can't be warded off this way */
 	
 	/* aggravate monsters, etc. won't be cast by peaceful monsters */
@@ -3103,6 +3103,10 @@ castum(mtmp, mattk)
 		return 0;
 	    }
 	}
+	else if (!mtmp) {
+ 		You("have no spells to cast right now!");
+		return 0;
+	}
 
 	if (spellnum == AGGRAVATION && !mtmp)
 	{
@@ -3280,6 +3284,7 @@ int spellnum;
 	else if(spellnum == SUMMON_ANGEL) spellnum = CURE_SELF;
 	else if(spellnum == SUMMON_ALIEN) spellnum = CURE_SELF;
 	else if(spellnum == SUMMON_DEVIL) spellnum = CURE_SELF;
+	else if(spellnum == INSECTS) spellnum = CURE_SELF;
     switch (spellnum) {
     case DEATH_TOUCH:
 	if (!mtmp || mtmp->mhp < 1) {
@@ -3372,6 +3377,8 @@ int spellnum;
            if(!resists_ston(mtmp) && !rn2(10) ){
 			if (!munstone(mtmp, yours))
 				minstapetrify(mtmp, yours);
+		   		   else
+			goto uspsibolt
 		   }
         }
 		dmg = 0;
