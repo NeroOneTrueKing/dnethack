@@ -2058,7 +2058,11 @@ int dieroll; /* needed for Magicbane and vorpal blades */
 	 * handled.  Messages are done in this function, however.
 	 */
 	*dmgptr += spec_dbon(otmp, mdef, *dmgptr);
-	
+		
+	//If there is no attacker (ie. you threw the artifact at yourself), make yourself the attacker
+	if (!magr)
+		magr = &youmonst;
+
 	if(otmp->oartifact == ART_LIMITED_MOON && magr == &youmonst){
 		*dmgptr *= ((double)u.uen/u.uenmax);
 		// if(u.uen >= 10) u.uen -= 10;
