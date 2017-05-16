@@ -3727,6 +3727,8 @@ typfnd:
 		}
 
 		otmp = oname(otmp, name);
+		if (sizewished)
+			otmp->objsize = objsize;
 		if (otmp->oartifact) {
 			u.uconduct.wisharti++;	/* KMH, conduct */
 		}
